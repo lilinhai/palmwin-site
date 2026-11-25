@@ -20,17 +20,13 @@
 - minSdk 24（Android 7.0），targetSdk 36
 - 权限只有两个：`INTERNET` 与 `ACCESS_NETWORK_STATE`
 
-校验下载是否完整、以及是不是本应用：
+下载的文件可以直接装。想确认是不是原版，用下面这条命令看签名者：
 
 ```
 apksigner verify --print-certs Palmwin-0.54.0-store-release.apk
 ```
 
-签名证书 `CN=Palmwin`，SHA-256：
-
-```
-1461a72b8fdd332aa492e5f4647bae1d783a023737eb37046dece08ad1e21be7
-```
+证书应该显示 `CN=Palmwin`。
 
 ### 升级说明
 
