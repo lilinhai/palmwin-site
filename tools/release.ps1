@@ -1,5 +1,5 @@
 # 把 store 版 APK 作为 GitHub Release 附件发布。
-# 只用 store 包：owner 包有 OWNER_BUILD=true，等于把付费功能白送，绝不能公开。
+# 只用 store 包：内部自用版（文件名带 -owner）绕过购买直接解锁全部功能，绝不能公开。
 # Release 附件不进 git 历史，二十多个版本也不会把仓库撑到几个 G。
 # 本脚本必须纯 ASCII（PowerShell 5.1 会按 ANSI 读含中文的 .ps1）。
 
