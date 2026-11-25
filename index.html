@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>掌窗 Palmwin — 把安卓手机变成 Windows 远程终端</title>
+<meta name="description" content="掌窗是一款安卓上的 Windows 远程桌面（RDP）客户端。为华为手机电脑模式设计，支持物理键鼠、中文输入、指针模式与显示缩放。">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="logo">掌</div>
+  <div class="name">掌窗 Palmwin</div>
+  <nav>
+    <a href="blog/">文章</a>
+    <a href="privacy-policy.html">隐私政策</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <h1>把手机变成一台 Windows 终端</h1>
+
+  <p class="muted">掌窗是一款安卓上的远程桌面（RDP）客户端。它不做文件传输、不做云中转，只把三件事做扎实：画面、键鼠、中文输入。</p>
+
+  <h2>它解决什么问题</h2>
+
+  <div class="card">
+    <h3>画面不卡</h3>
+    <p>直接渲染进系统图形缓冲区，只提交变化的区域；同时协商 RDP 的图形管线（GFX），让滚动这类操作不再整屏重传，而是局部刷新。</p>
+  </div>
+
+  <div class="card">
+    <h3>中文能打进去</h3>
+    <p>软键盘输入的中文直接以 Unicode 码点发给远端，不猜键盘布局；PC 模式下接物理键盘时反过来发扫描码，让 Windows 自己的输入法组词。</p>
+  </div>
+
+  <div class="card">
+    <h3>手机和电脑两种用法都算清楚</h3>
+    <p>手指点击是一套模型，鼠标是另一套，不混着来。点不中 16 像素的小按钮，可以把远端桌面整体放大到 200% 或 300%，而不是把手机贴到眼前。</p>
+  </div>
+
+  <div class="card">
+    <h3>纯单机，没有我们的服务器</h3>
+    <p>主机地址、账号密码只存在这台手机上。密码用 Android Keystore 的密钥加密，密钥不可导出。没有账号体系、没有云同步、没有统计上报。</p>
+    <p class="small"><a href="privacy-policy.html">隐私政策全文</a></p>
+  </div>
+
+  <h2>文章</h2>
+
+  <ul class="post-list">
+    <li>
+      <a href="blog/why-android-rdp-feels-laggy.html">
+        <span class="t">为什么安卓上的远程桌面会「卡」</span>
+        <span class="d">画面延迟与锯齿，往往不是网速问题</span>
+      </a>
+    </li>
+    <li>
+      <a href="blog/chinese-input-in-rdp.html">
+        <span class="t">中文输入为什么是远程桌面的老大难</span>
+        <span class="d">软键盘和物理键盘，要走两条完全不同的路</span>
+      </a>
+    </li>
+    <li>
+      <a href="blog/display-scale.html">
+        <span class="t">远端 1 像素，不等于你屏幕上的 1 像素</span>
+        <span class="d">为什么 100% 缩放下小按钮点不中</span>
+      </a>
+    </li>
+    <li>
+      <a href="blog/pointer-mode.html">
+        <span class="t">指针模式：把手机屏幕当触摸板</span>
+        <span class="d">手指推光标，而不是手指就是光标</span>
+      </a>
+    </li>
+    <li>
+      <a href="blog/windows-shortcuts-on-android.html">
+        <span class="t">哪些 Windows 快捷键注定到不了远端</span>
+        <span class="d">Win、Alt+Tab、Ctrl+Esc 被系统先吃掉了</span>
+      </a>
+    </li>
+    <li>
+      <a href="blog/cursor-and-editable-field.html">
+        <span class="t">怎么判断「光标在不在输入框里」</span>
+        <span class="d">一个看起来简单、实际会连错三次的问题</span>
+      </a>
+    </li>
+    <li>
+      <a href="blog/floating-panel-on-android.html">
+        <span class="t">安卓上的悬浮面板：为什么它这么难做对</span>
+        <span class="d">一个半圆按钮，反复了六个版本</span>
+      </a>
+    </li>
+    <li>
+      <a href="blog/debug-android-without-adb.html">
+        <span class="t">没有 adb、没有模拟器，怎么开发安卓 App</span>
+        <span class="d">从「能调试」降级成「能观测」</span>
+      </a>
+    </li>
+  </ul>
+
+</div>
+
+<footer class="site">
+  <p>掌窗 Palmwin · <a href="privacy-policy.html">隐私政策</a></p>
+</footer>
+
+</body>
+</html>

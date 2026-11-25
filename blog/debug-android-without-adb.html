@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>没有 adb、没有模拟器，怎么开发安卓 App — 掌窗</title>
+<meta name="description" content="我的开发机是一台 Xeon 工作站，CPU 虚拟化在 BIOS 里是关的，安卓模拟器起不来；USB 调试在这台机器上也一直连不通。整个项目从第一行代码到发布，没有用过一次 logcat。这篇文章讲替代方案。">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="logo">掌</div>
+  <div class="name">掌窗 Palmwin</div>
+  <nav>
+    <a href="../index.html">首页</a>
+    <a href="../blog/">文章</a>
+    <a href="../privacy-policy.html">隐私政策</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<h1>没有 adb、没有模拟器，怎么开发安卓 App</h1>
+<blockquote><p>我的开发机是一台 Xeon 工作站，CPU 虚拟化在 BIOS 里是关的，安卓模拟器起不来；USB 调试在这台机器上也一直连不通。整个项目从第一行代码到发布，没有用过一次 logcat。这篇文章讲替代方案。</p></blockquote>
+<h2>一、先确认你失去了什么</h2>
+<p><code>adb</code> 和模拟器提供三件事：</p>
+<ol>
+<li><strong>装包</strong>：把 APK 推到设备上。</li>
+<li><strong>看日志</strong>：<code>logcat</code> 实时读应用输出。</li>
+<li><strong>调试</strong>：断点、变量、调用栈。</li>
+</ol>
+<p>失去 1 还能用别的方式绕过；失去 2 影响最大，因为大部分问题只能靠日志定位；失去 3 基本无解，只能把调试信息写进日志。</p>
+<h2>二、装包：从 adb install 换成手动安装</h2>
+<p>最直接的办法是把 APK 拷到手机上手动点安装。为了让这个过程可持续，需要两件事：</p>
+<ul>
+<li><strong>一处固定的产物目录</strong>。我把所有构建产物输出到 <code>output/live/</code>，文件名带版本号，<code>Palmwin-0.54.0-store-release.apk</code> 这种。手机上用文件管理器打开这个目录，装哪个一目了然。</li>
+<li><strong>版本号必须进包，并且界面上能看到</strong>。「关于」页读 <code>packageManager.getPackageInfo</code> 显示版本号，这样用户（包括我自己）能确认装的是哪一版。这一点比想象中重要：我在排查一个问题时，用户贴回来的日志里有一个字符串是上一版独有的，才发现他装的是旧版，白花了一轮时间。</li>
+</ul>
+<h2>三、看日志：自己写文件日志</h2>
+<p>这是最关键的一步。思路很简单：<strong>把要打的东西写进应用私有目录下的一个文件，让用户（或自己）把这个文件导出来。</strong></p>
+<p>实现上有几个细节必须注意，否则日志本身会变成新的问题源：</p>
+<h3>1. 不要在 UI 线程做磁盘 IO</h3>
+<p>第一版是每打一行就 <code>appendText</code> 到文件。结果是在某几个高频路径上（比如指针每次移动都记一条），日志写入把主线程拖住了，界面出现肉眼可见的卡顿。改成生产者-消费者：调用方只往一个有界队列里塞字符串，另起一个守护线程批量写盘，队列满了就丢弃最旧的。</p>
+<blockquote><p>有界队列 + 丢弃策略，比「无限队列」好。日志丢几条不影响排查，内存涨爆会。</p></blockquote>
+<h3>2. 每条日志必须带墙钟时间</h3>
+<p>用 <code>HH:mm:ss.SSS</code> 而不是「距启动多少毫秒」。因为用户报问题时通常会说「我大概十点二十左右试的」，能对上墙钟才可能对上现场。</p>
+<h3>3. 提供一个「导出日志」的入口</h3>
+<p>最简单的方式是把日志写在外部私有目录（<code>getExternalFilesDir()</code>），这样文件管理器能直接访问，不用实现分享。代价是这个目录在某些清理工具里会被清，所以要注意「日志消失」不等于「没写」。</p>
+<h3>4. 千万不要把敏感信息写进去</h3>
+<p>密码、令牌、完整的 URL 查询参数，一律不写。只写长度、状态码、失败原因。这一点在要上架的 App 里是硬要求，隐私政策里写了「日志不含密码明文」，代码就必须对得上。</p>
+<h2>四、怎么在没有断点的情况下定位问题</h2>
+<p>把「调试」降级成「观测」，具体做法：</p>
+<h3>1. 在关键状态变化处打点，而不是在关键函数入口打点</h3>
+<p>「函数被调用了」这种日志价值很低。有价值的是「状态从 A 变成 B，因为 C」。比如不要打 <code>onKeyDown called</code>，要打 <code>key observed: keyCode=131 scanCode=63 device=外接键盘</code>。</p>
+<h3>2. 给每条可疑路径配一个「反证日志」</h3>
+<p>这是我在连续踩了三次同一个坑之后才学会的。当时的错误是「日志里没看到 X，就认为 X 没发生」。但没看到可能是因为<strong>根本没打到那一步</strong>。</p>
+<p>所以现在凡是「没看到就下结论」的地方，都必须在更上游加一条无条件的日志。比如判断「按键有没有到应用」，就不能只在映射失败的分支打日志——要在整个按键入口的最前面打一条，这样「零条日志」才等于「事件没进来」。</p>
+<h3>3. 日志要能回答「我现在跑的是哪一版」</h3>
+<p>日志开头打一行版本号、<code>versionCode</code>、设备型号、系统版本、屏幕尺寸、缩放比例。这一行能省掉大量来回。</p>
+<h2>五、构建验证：把「我认为编译过了」变成「产物里确实有」</h2>
+<p>没有断点，就更要依赖「查产物」而不是「查代码」。几个具体做法：</p>
+<ul>
+<li><strong>查 dex 里有没有这个字符串</strong>。改了文案、加了日志之后，从 APK 里解出 <code>classes*.dex</code>，用单字节编码搜一遍。搜到了才算真的进了包。</li>
+<li><strong>查资源有没有编进去</strong>。<code>aapt2 dump resources</code> 看 id 和值。</li>
+<li><strong>查 native 符号</strong>。<code>llvm-nm -D --defined-only libxxx.so</code>，确认 JNI 函数确实导出了。</li>
+<li><strong>查清单和签名</strong>。<code>aapt2 dump badging</code> 看版本号和权限，<code>apksigner verify --print-certs</code> 看签名者。</li>
+</ul>
+<p>这套做法的代价是每轮多几分钟，收益是「不会有『以为改了其实没改』这种最浪费时间的错误」。</p>
+<h2>六、真机反馈的闭环</h2>
+<p>没有 adb 也有一个好处：<strong>你必须假设用户能自己把日志导出来</strong>。这倒逼了两件事：</p>
+<ol>
+<li>日志目录必须是用户能访问的（外部私有目录）。</li>
+<li>出问题时有一个明确的「请把这个文件发给我」的动作。</li>
+</ol>
+<p>我在设置页里放过一段说明，告诉用户日志在哪。后来发现几乎没人看，所以现在改成：出问题时的提示里直接写文件路径。</p>
+<h2>七、这套方案的边界</h2>
+<p>坦白说：<strong>没有断点意味着有些 bug 的定位成本会高一个数量级</strong>。逻辑错误还能靠日志推断；内存越界、竞态、卡在某个系统调用里，基本只能靠猜和二分。</p>
+<p>如果条件允许，还是应该想办法把 adb 弄通。我花了很久才接受「这台机器就是没有调试器」这个事实，然后才把上面这套东西建起来。接受得越早，浪费在尝试连 adb 上的时间越少。</p>
+
+</div>
+
+<footer class="site"><p>掌窗 Palmwin · <a href="../privacy-policy.html">隐私政策</a></p></footer>
+
+</body>
+</html>

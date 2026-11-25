@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>哪些 Windows 快捷键注定到不了远端 — 掌窗</title>
+<meta name="description" content="做远程桌面客户端，迟早会遇到「按 Win 键没反应」「Alt+Tab 切出去变成切安卓应用了」这类反馈。我一开始以为是按键映射表不全，把映射补了一遍又一遍，问题照旧。">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="logo">掌</div>
+  <div class="name">掌窗 Palmwin</div>
+  <nav>
+    <a href="../index.html">首页</a>
+    <a href="../blog/">文章</a>
+    <a href="../privacy-policy.html">隐私政策</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<h1>哪些 Windows 快捷键注定到不了远端</h1>
+<blockquote><p>做远程桌面客户端，迟早会遇到「按 Win 键没反应」「Alt+Tab 切出去变成切安卓应用了」这类反馈。我一开始以为是按键映射表不全，把映射补了一遍又一遍，问题照旧。</p></blockquote>
+<p>后来加了一段代码，把每个进入应用按键回调的键都打一条日志。跑了一轮，日志是空的——那些键<strong>一条都没有进来</strong>。</p>
+<h2>一、系统在应用之前就已经消费了</h2>
+<p>安卓把一部分组合键留给自己：</p>
+<table><thead><tr><th>按键</th><th>系统的行为</th></tr></thead><tbody><tr><td>Win（Meta）</td><td>回到桌面 / 打开多任务</td></tr><tr><td>Alt+Tab</td><td>切换安卓应用</td></tr><tr><td>Ctrl+Esc</td><td>最近任务</td></tr><tr><td>Alt+F4</td><td>关闭前台应用</td></tr><tr><td>F12（部分机型）</td><td>被接成电源键，直接息屏</td></tr></tbody></table>
+<p>这些事件到不了应用的按键回调，所以映射表写得再全也没有执行机会。</p>
+<blockquote><p>判据：<strong>如果日志里一条都没有，先怀疑「没发生」，再怀疑「没记录」。</strong> 这两件事必须由两段不同的日志区分开，否则会得出完全相反的结论。</p></blockquote>
+<h2>二、唯一可行的补救：给它们做按钮</h2>
+<p>既然按键进不来，就只能在界面上给入口。我在浮动面板上放了一排按钮：Win、Alt+Tab、Ctrl+Esc、Alt+F4、Win+D、任务管理器、Ctrl+Alt+Del、Win+E、Win+R、Win+L。点一下，由应用按正确顺序发扫描码。</p>
+<p>顺序是：<strong>修饰键按下 → 主键按下 → 主键抬起 → 修饰键抬起</strong>。Windows 判断组合键，依据是主键按下那一刻修饰键是否处于按下状态。</p>
+<p>抬起必须逐个补发。漏一个释放事件，远端会认为 Ctrl 一直按着，之后所有输入都会变成组合键——这个症状看起来像「键盘坏了」，其实是状态泄漏。</p>
+<h2>三、触摸点也会有同样的泄漏</h2>
+<p>这套「必须成对」的规则不只适用于键盘。触摸注入也是一样：按下必须对应抬起，五处路径（正常抬起、手势取消、第二根手指按下、异常情况下的兜底、视图销毁）都要发抬起。漏一处，Windows 桌面上就会留下一个永远按着的幽灵触点，之后所有点击行为都错乱。</p>
+<h2>四、F 区的另一类问题：厂商把 Fn 层改了</h2>
+<p>有些笔记本/键盘把顶行的 F 键映射成了媒体功能：F5 是播放/暂停，F11/F12 是亮度。这时你按 F5，系统给应用的事件是「媒体播放」，不是「F5」。客户端的映射表里查不到媒体键，就什么都不发。</p>
+<p>修法是把这类媒体键映射回对应的 F 键。这里要说明一个限制：RDP 用的扫描码是「IBM PC Set 1」，它<strong>表达不了</strong> Windows 那套 E0 前缀的媒体键序列。硬发会变成乱码键。所以「媒体键 → F 键」是唯一的映射方向，反过来不成立。</p>
+<h2>五、电源键这一类：应用层永远抢不到</h2>
+<p>F12 被接成电源键的情况，如果是在内核或 HAL 层改的键值，应用层拿到的根本不是 F12，任何客户端代码都无法拦截。我试过在按键入口放行这类键（让它继续传播），也试过在映射表里覆盖，都不行。</p>
+<p>最终方案是两个：一是把这类键也映射到 F12（如果系统还给了一个可识别的事件），二是在面板上放一个必达的 F12 按钮。前者是尽力，后者是保证。</p>
+<h2>六、小结</h2>
+<p>做「兼容所有 Windows 用户习惯」这件事，一部分靠映射表，一部分靠承认边界。映射表能解决的是「系统把事件给你了，但你没查到」；系统根本不给你的事件，只能靠界面上的入口。把这两类分清楚，才不会在一个不可能的修复上反复消耗。</p>
+
+</div>
+
+<footer class="site"><p>掌窗 Palmwin · <a href="../privacy-policy.html">隐私政策</a></p></footer>
+
+</body>
+</html>
