@@ -71,6 +71,39 @@ push 到 `main` 后 Pages 自动重建，通常 30~60 秒。没有 Actions 工�
 
 国内访问 Pages 不稳定时，可以在 Gitee 建同名仓库做镜像。只要 `privacy-policy.html` 能公开访问即可，其余是加分项。
 
+## 发布 APK
+
+APK **不进 git**。二十多个版本 × 21 MB 会把仓库撑到几个 G，clone 会变得没法忍受。
+走 GitHub Release 附件，附件不占仓库体积，也没有单文件大小限制（Release 附件上限 2 GB）。
+
+发一次：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\release.ps1 `
+  -Tag 'v0.54.0' `
+  -Apk 'D:\dev-env\workspace\windows-rdp-android\output\live\Palmwin-0.54.0-store-release.apk' `
+  -NameFile '.\tools\release-name.tmp' `
+  -BodyFile '.\tools\release-body-0.54.0.md'
+```
+
+`release-name.tmp` 是 UTF-8 的标题（一行），`release-body-0.54.0.md` 是发布说明。
+脚本从 `git credential fill` 取 token，不需要 `gh` 登录；同名 release 与同名附件都会复用，重跑安全。
+
+**只发 store 包。** owner 包有 `OWNER_BUILD=true`，等于把付费功能白送出去。脚本里有硬检查，
+文件名含 `owner` 直接抛错退出。
+
+下载地址固定形状：
+
+```
+https://github.com/lilinhai/palmwin-site/releases/download/v0.54.0/Palmwin-0.54.0-store-release.apk
+```
+
+发完一定要验一次 MD5，别只看脚本说成功：
+
+```powershell
+(Get-FileHash <下载的文件> -Algorithm MD5).Hash
+```
+
 ## 发到 CSDN
 
 `blog/*.md` 就是为了能直接粘贴到 CSDN 编辑器而写的：不含 YAML front matter、不含相对链接、不含本地图片引用。
