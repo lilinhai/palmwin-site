@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>掌窗 Palmwin — 把安卓手机变成 Windows 远程终端</title>
 <meta name="description" content="掌窗是一款安卓上的 Windows 远程桌面（RDP）客户端。为华为手机电脑模式设计，支持物理键鼠、中文输入、指针模式与显示缩放。">
+<meta property="og:title" content="掌窗 Palmwin — 把安卓手机变成 Windows 远程终端">
+<meta property="og:description" content="安卓上的 Windows 远程桌面客户端。支持物理键鼠、中文输入、指针模式与显示缩放。纯单机，没有我们的服务器。">
+<meta property="og:image" content="https://lilinhai.github.io/palmwin-site/img/hero-pc.jpg">
+<meta property="og:type" content="website">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -24,30 +28,104 @@
 
   <p class="muted">掌窗是一款安卓上的远程桌面（RDP）客户端。它不做文件传输、不做云中转，只把三件事做扎实：画面、键鼠、中文输入。</p>
 
-  <h2>它解决什么问题</h2>
+  <img class="hero" src="img/hero-pc.jpg" alt="手机接上扩展坞、便携屏和键鼠，屏幕上是一整块 Windows 桌面">
 
-  <div class="card">
-    <h3>画面不卡</h3>
-    <p>直接渲染进系统图形缓冲区，只提交变化的区域；同时协商 RDP 的图形管线（GFX），让滚动这类操作不再整屏重传，而是局部刷新。</p>
+  <h2>它解决什么</h2>
+
+  <p>市面上安卓 RDP 客户端不少，但拿它们连一台真正的 Windows 干活，几乎都会碰到同样四个问题。</p>
+
+  <table>
+    <thead>
+      <tr><th>问题</th><th>具体表现</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>画面延迟</strong></td><td>拖动窗口、滚动网页时一卡一卡，像在远程看一张不停重新刷新的截图</td></tr>
+      <tr><td><strong>画面锯齿</strong></td><td>字发虚、边缘毛糙，看久了眼睛疼</td></tr>
+      <tr><td><strong>打不了中文</strong></td><td>手机上输入法打出来的汉字，远端一个字都收不到</td></tr>
+      <tr><td><strong>点不中</strong></td><td>远端界面上那些十几像素的小按钮，手指怎么点都点不上</td></tr>
+    </tbody>
+  </table>
+
+  <p>掌窗就是针对这四件事重写的：协议栈直接写系统图形缓冲区（不经中间层拷贝）、按 1:1 渲染不缩放、中文走 Unicode 码点直达、缩放按远端分辨率改而不是把画面放大。</p>
+
+  <h2>怎么用</h2>
+
+  <h3>两种形态，一套代码</h3>
+
+  <div class="duo">
+    <figure>
+      <img src="img/thin-client.jpg" alt="手机竖屏连接 Windows 桌面">
+      <figcaption>手机模式：竖屏拿在手里</figcaption>
+    </figure>
+    <figure>
+      <img src="img/dock.jpg" alt="扩展坞、便携屏与键鼠">
+      <figcaption>电脑模式：接显示器与键鼠</figcaption>
+    </figure>
   </div>
 
-  <div class="card">
-    <h3>中文能打进去</h3>
-    <p>软键盘输入的中文直接以 Unicode 码点发给远端，不猜键盘布局；PC 模式下接物理键盘时反过来发扫描码，让 Windows 自己的输入法组词。</p>
+  <p><strong>手机模式</strong>：竖屏拿在手里，单指拖动滚动、双击当左键、长按当右键。</p>
+  <p><strong>电脑模式</strong>：华为手机投到显示器或便携屏，接物理键鼠，用起来和 Windows 笔记本一样。悬停、滚轮、右键菜单全部照常。</p>
+
+  <h3>连上去只要三步</h3>
+
+  <figure>
+    <img src="img/connect.jpg" alt="新增主机页面，填写地址、用户名、密码">
+    <figcaption>填主机地址、账号、密码，密码可选记住</figcaption>
+  </figure>
+
+  <p>密码记住时存的是经过 Android Keystore 加密的密文，密钥不可导出、无法离开这台设备。不勾「记住密码」则完全不保存。</p>
+
+  <h3>打中文</h3>
+
+  <div class="duo">
+    <figure>
+      <img src="img/ime.jpg" alt="软键盘上打中文，远端正常收到汉字">
+      <figcaption>软键盘：直接用手机输入法</figcaption>
+    </figure>
+    <figure>
+      <img src="img/ime-menu.jpg" alt="右侧工具面板：软键盘开关、指针模式、指针速度、Windows 组合键">
+      <figcaption>工具面板：开关与组合键</figcaption>
+    </figure>
   </div>
 
-  <div class="card">
-    <h3>手机和电脑两种用法都算清楚</h3>
-    <p>手指点击是一套模型，鼠标是另一套，不混着来。点不中 16 像素的小按钮，可以把远端桌面整体放大到 200% 或 300%，而不是把手机贴到眼前。</p>
-  </div>
+  <p>软键盘弹出后直接用手机输入法打字，远端正常收到汉字。物理键盘则走扫描码，让远端自己的输入法去组词——两条路各走各的，都对。</p>
+
+  <h3>点不中就调缩放</h3>
+
+  <p>远端 1 像素在手机上可能只有 1 毫米宽。把显示缩放调到 200% 或 250%，相当于把远端的分辨率调低、字和按钮一起变大，而不是把画面糊着放大。</p>
+
+  <h3>指针模式</h3>
+
+  <figure>
+    <img src="img/pointer.jpg" alt="指针模式打开，工具面板显示速度档位，桌面上有光标">
+    <figcaption>屏幕变成一块笔记本触摸板</figcaption>
+  </figure>
+
+  <p>手指在哪里推，光标就从哪里移动。适合远端密密麻麻的小图标。</p>
+
+  <h3>工具菜单</h3>
+
+  <p>右侧半圆手柄点一下，滑出面板：软键盘开关、指针模式、指针速度、Windows 组合键（Win、Alt+Tab、Ctrl+Esc、Alt+F4、任务管理器、Ctrl+Alt+Del 等）。Win 和 Alt+Tab 这些键在安卓系统层就被吃掉了，只有做成按钮才送得到远端。</p>
+
+  <h2>它不做什么</h2>
+
+  <p>这个产品的边界划得很清楚：</p>
+
+  <ul>
+    <li><strong>无账号、无云端、无我们的服务器</strong>。画面、按键、主机地址和密码只在你的手机和你填的那台 Windows 之间流动。</li>
+    <li>不含统计、广告、推送、崩溃收集。</li>
+    <li>不做文件传输、剪贴板同步、音频、多显示器、打印、网关。</li>
+  </ul>
 
   <div class="card">
-    <h3>纯单机，没有我们的服务器</h3>
+    <h3>纯单机</h3>
     <p>主机地址、账号密码只存在这台手机上。密码用 Android Keystore 的密钥加密，密钥不可导出。没有账号体系、没有云同步、没有统计上报。</p>
     <p class="small"><a href="privacy-policy.html">隐私政策全文</a></p>
   </div>
 
   <h2>文章</h2>
+
+  <p class="muted">做这个客户端过程中真正踩过的问题，都写在下面了。</p>
 
   <ul class="post-list">
     <li>
