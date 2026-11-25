@@ -144,6 +144,16 @@ figcaption {
   margin-top: 8px;
   text-align: center;
 }
+
+/* 手机截图是竖长条（880×1815 这类），铺满宽度会有两千多像素高，
+   一张就顶掉两屏。这里限高并居中，留白用卡片色，不加阴影。 */
+figure.tall img {
+  max-height: 560px;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  object-fit: contain;
+}
 img.hero {
   width: 100%;
   height: auto;
